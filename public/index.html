@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simple Chat</title>
+    <style>
+  *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body{
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #999;
+  }
+  .main{
+      height: 90vh;
+      width: 50vw;
+      background-color: white;
+      padding: 4vh;
+      border-radius: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+  }
+  h1{
+      text-align: center;
+  }
+  .username-container{
+      display: flex;
+      align-items: center;
+      padding: 1vw 0;
+      height: 10%;
+  }
+  #messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    height: 80%;
+    overflow-y: auto;
+    }
+    #messages li {
+      padding: 8px 16px;
+      border-bottom: 1px solid #eee;
+    }
+    #messages li:last-child {
+      border-bottom: none;
+    }
+    #form {
+      display: flex;
+    }
+    input {
+      font-size: 16px;
+      border-radius: 10px;
+      flex-grow: 1;
+      border: 1px solid grey;
+      padding: 1vh 2vw;
+    }
+    button {
+      padding: 10px 20px;
+      background: dodgerblue;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-left: 10px;
+      border-radius: 20px;
+      transition: all 0.2s ease-in-out;
+      }
+    button:hover {
+        transform: translateY(-4px);
+    }
+    .system-message {
+    color: #666;
+    font-style: italic;
+    font-size: 0.9em;
+}
+  </style>
+</head>
+
+<body>
+    <div class="main">
+        <h1>Simple Chat</h1>
+        <div class="username-container">
+            <input type="text" id="username-input" placeholder="Enter your username" />
+            <button id="set-username">Set Username</button>
+        </div>
+        <ul id="messages"></ul>
+        <form id="form" action="#">
+            <input id="input" autocomplete="off" placeholder="Type your message..." />
+            <button>Send</button>
+        </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+        // Add username handling
+        const usernameInput = document.getElementById('username-input');
+        const setUsernameBtn = document.getElementById('set-username');
+        let currentUsername = 'Anonymous';
+
+        setUsernameBtn.addEventListener('click', () => {
+            const newUsername = usernameInput.value.trim();
+            if (newUsername) {
+                socket.emit('set username', newUsername);
+                currentUsername = newUsername;
+                usernameInput.value = '';
+            }
+        });
+
+        // Update message display to show usernames
+        socket.on('chat message', (data) => {
+            const item = document.createElement('li');
+            item.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        // Handle user join notifications
+        socket.on('user joined', (data) => {
+            const item = document.createElement('li');
+            item.className = 'system-message';
+            if (data.oldUsername === 'Anonymous') {
+                item.textContent = `${data.newUsername} has joined the chat`;
+            } else {
+                item.textContent = `${data.oldUsername} changed username to ${data.newUsername}`;
+            }
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        // Handle user leave notifications
+        socket.on('user left', (data) => {
+            const item = document.createElement('li');
+            item.className = 'system-message';
+            item.textContent = `${data.username} has left the chat`;
+            messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = input.value.trim();
+            if (message) {
+                // Emit the message to the server
+                socket.emit('chat message', message);
+                // Clear the input
+                input.value = '';
+            }
+        });
+
+    </script>
+</body>
+
+</html>
