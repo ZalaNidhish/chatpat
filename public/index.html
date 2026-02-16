@@ -3,166 +3,217 @@
 
 <head>
     <title>Simple Chat</title>
+
+    <!-- ✅ IMPORTANT: prevents mobile auto zoom -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
-  *{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  body{
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #999;
-  }
-  .main{
-      height: 90vh;
-      width: 90vw;
-      background-color: white;
-      padding: 4vh;
-      border-radius: 50px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-  }
-  h1{
-      text-align: center;
-  }
-  .username-container{
-      display: flex;
-      align-items: center;
-      padding: 3vw 0;
-      height: 10%;
-  }
-  #messages {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    padding: 10px;
-    height: 80%;
-    overflow-y: auto;
-    }
-    #messages li {
-      padding: 8px 16px;
-      border-bottom: 1px solid #eee;
-    }
-    #messages li:last-child {
-      border-bottom: none;
-    }
-    #form {
-      display: flex;
-    }
-    input {
-      font-size: 16px;
-      border-radius: 10px;
-      flex-grow: 1;
-      border: 1px solid grey;
-      padding: 2vh 2vw;
-    }
-    button {
-      padding: 2vh 1vw;
-      background: dodgerblue;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin-left: 10px;
-      border-radius: 20px;
-      transition: all 0.2s ease-in-out;
-      width: 20vw;
-      font-size: 18px;
-      }
-    button:hover {
-        transform: translateY(-4px);
-    }
-    .system-message {
-    color: #666;
-    font-style: italic;
-    font-size: 0.9em;
-}
-  </style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            width:100vw;
+            height:100vh;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background-color:#999;
+            font-family:Arial, Helvetica, sans-serif;
+        }
+
+        .main{
+            height:90vh;
+            width:90vw;
+            background-color:white;
+            padding:4vh;
+            border-radius:50px;
+            display:flex;
+            flex-direction:column;
+            justify-content:space-between;
+        }
+
+        h1{
+            text-align:center;
+        }
+
+        .username-container{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:3vw 0;
+            height:10%;
+        }
+
+        #messages{
+            list-style-type:none;
+            margin-bottom:20px;
+            border:1px solid #ddd;
+            padding:10px;
+            height:80%;
+            overflow-y:auto;
+        }
+
+        #messages li{
+            padding:8px 16px;
+            border-bottom:1px solid #eee;
+            word-wrap:break-word;
+        }
+
+        #messages li:last-child{
+            border-bottom:none;
+        }
+
+        #form{
+            display:flex;
+        }
+
+        input{
+            font-size:16px; /* ✅ prevents mobile zoom */
+            border-radius:10px;
+            flex-grow:1;
+            border:1px solid grey;
+            padding:2vh 2vw;
+            min-width:0;
+        }
+
+        button{
+            padding:2vh 1vw;
+            background:dodgerblue;
+            color:white;
+            border:none;
+            cursor:pointer;
+            margin-left:10px;
+            border-radius:20px;
+            transition:all 0.2s ease-in-out;
+            width:20vw;
+            font-size:18px;
+        }
+
+        button:hover{
+            transform:translateY(-4px);
+        }
+
+        .system-message{
+            color:#666;
+            font-style:italic;
+            font-size:0.9em;
+        }
+
+        /* ✅ MOBILE RESPONSIVE */
+        @media (max-width:600px){
+
+            .main{
+                width:95vw;
+                height:95vh;
+                padding:15px;
+                border-radius:20px;
+            }
+
+            h1{
+                font-size:22px;
+            }
+
+            .username-container{
+                flex-direction:column;
+                height:auto;
+            }
+
+            button{
+                width:auto;
+                padding:12px;
+                font-size:16px;
+            }
+
+            input{
+                padding:12px;
+                font-size:16px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="main">
-        <h1>Simple Chat</h1>
-        <div class="username-container">
-            <input type="text" id="username-input" placeholder="Enter your username" />
-            <button id="set-username">Set Username</button>
-        </div>
-        <ul id="messages"></ul>
-        <form id="form" action="#">
-            <input id="input" autocomplete="off" placeholder="Type your message..." />
-            <button>Send</button>
-        </form>
+
+<div class="main">
+    <h1>Simple Chat</h1>
+
+    <div class="username-container">
+        <input type="text" id="username-input" placeholder="Enter your username" />
+        <button id="set-username">Set Username</button>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        const form = document.getElementById('form');
-        const input = document.getElementById('input');
-        const messages = document.getElementById('messages');
-        // Add username handling
-        const usernameInput = document.getElementById('username-input');
-        const setUsernameBtn = document.getElementById('set-username');
-        let currentUsername = 'Anonymous';
+    <ul id="messages"></ul>
 
-        setUsernameBtn.addEventListener('click', () => {
-            const newUsername = usernameInput.value.trim();
-            if (newUsername) {
-                socket.emit('set username', newUsername);
-                currentUsername = newUsername;
-                usernameInput.value = '';
-            }
-        });
+    <form id="form" action="#">
+        <input id="input" autocomplete="off" placeholder="Type your message..." />
+        <button>Send</button>
+    </form>
+</div>
 
-        // Update message display to show usernames
-        socket.on('chat message', (data) => {
-            const item = document.createElement('li');
-            item.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
-            messages.appendChild(item);
-            messages.scrollTop = messages.scrollHeight;
-        });
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
 
-        // Handle user join notifications
-        socket.on('user joined', (data) => {
-            const item = document.createElement('li');
-            item.className = 'system-message';
-            if (data.oldUsername === 'Anonymous') {
-                item.textContent = `${data.newUsername} has joined the chat`;
-            } else {
-                item.textContent = `${data.oldUsername} changed username to ${data.newUsername}`;
-            }
-            messages.appendChild(item);
-            messages.scrollTop = messages.scrollHeight;
-        });
+    const usernameInput = document.getElementById('username-input');
+    const setUsernameBtn = document.getElementById('set-username');
 
-        // Handle user leave notifications
-        socket.on('user left', (data) => {
-            const item = document.createElement('li');
-            item.className = 'system-message';
-            item.textContent = `${data.username} has left the chat`;
-            messages.appendChild(item);
-            messages.scrollTop = messages.scrollHeight;
-        });
+    let currentUsername = 'Anonymous';
 
-        // Handle form submission
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const message = input.value.trim();
-            if (message) {
-                // Emit the message to the server
-                socket.emit('chat message', message);
-                // Clear the input
-                input.value = '';
-            }
-        });
+    setUsernameBtn.addEventListener('click', () => {
+        const newUsername = usernameInput.value.trim();
+        if (newUsername) {
+            socket.emit('set username', newUsername);
+            currentUsername = newUsername;
+            usernameInput.value = '';
+        }
+    });
 
-    </script>
+    socket.on('chat message', (data) => {
+        const item = document.createElement('li');
+        item.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('user joined', (data) => {
+        const item = document.createElement('li');
+        item.className = 'system-message';
+
+        if (data.oldUsername === 'Anonymous') {
+            item.textContent = `${data.newUsername} has joined the chat`;
+        } else {
+            item.textContent = `${data.oldUsername} changed username to ${data.newUsername}`;
+        }
+
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('user left', (data) => {
+        const item = document.createElement('li');
+        item.className = 'system-message';
+        item.textContent = `${data.username} has left the chat`;
+
+        messages.appendChild(item);
+        messages.scrollTop = messages.scrollHeight;
+    });
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const message = input.value.trim();
+        if (message) {
+            socket.emit('chat message', message);
+            input.value = '';
+        }
+    });
+</script>
+
 </body>
-
 </html>
